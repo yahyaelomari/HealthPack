@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.yahyaelomari.healthpack</groupId>
+        <artifactId>healthpack-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>healthpack-proto</artifactId>
+    <name>healthpack-proto</name>
+    <description>Protobuf contracts in src/main/proto and the gRPC stubs generated from them</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- protoc and the grpc-java plugin versions come from the Spring Boot parent -->
+            <plugin>
+                <groupId>io.github.ascopes</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <configuration>
+                    <!-- The module has to build before the first .proto file exists -->
+                    <failOnMissingSources>false</failOnMissingSources>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
