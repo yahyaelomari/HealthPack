@@ -3,9 +3,9 @@ package com.yahyaelomari.healthpack.gateway.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 /**
@@ -34,13 +34,18 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Profile("!test")
 public class SecurityConfig {
 
+    // Auto-configured in healthpack-common: reads Keycloak's realm_access.roles
+    // instead of Spring's default scope claim, so hasRole(...) downstream
+    // actually matches something. See ReactiveJwtRoleConverterAutoConfiguration.
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain securityWebFilterChain(
+            ServerHttpSecurity http, ReactiveJwtAuthenticationConverterAdapter jwtAuthenticationConverter) {
         return http
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/health/**").permitAll()
                         .anyExchange().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(
+                        jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .build();
     }
