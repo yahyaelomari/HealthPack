@@ -57,6 +57,12 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Only for the reactive half of the JWT role converter (edge-gateway) -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
 </project>

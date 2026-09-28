@@ -22,6 +22,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Internal -->
+        <dependency>
+            <groupId>com.yahyaelomari.healthpack</groupId>
+            <artifactId>healthpack-common</artifactId>
+        </dependency>
+
         <!-- Gateway (reactive: WebFlux on Netty) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

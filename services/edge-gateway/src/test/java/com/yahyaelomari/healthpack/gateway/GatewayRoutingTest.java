@@ -10,6 +10,7 @@ import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTest
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -22,26 +23,34 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
  * {@code RouteLocator} bean, which is the whole point: the 13 routes need no
  * Java code to work.
  *
- * <p>No property is overridden here, on purpose. Every attempt to add or
- * change a {@code spring.cloud.gateway.server.webflux.routes[N]} entry from a
- * test-time property source — {@code @DynamicPropertySource}, inline
- * {@code @SpringBootTest(properties=)}, even a real {@code .properties} file
- * via {@code @TestPropertySource}, at the existing index and at fresh ones —
- * consistently failed with {@code UnboundConfigurationPropertiesException}
- * from {@code GatewayProperties}' own list binding, for reasons that didn't
- * resolve after several genuinely different attempts. The same property
- * shape binds correctly in a real run (verified earlier when all 15 services
- * were boot-tested), so the failure is specific to how the test context
- * assembles property sources around this one binding target.
+ * <p>No property is overridden here, on purpose. Adding or changing any
+ * {@code spring.cloud.gateway.server.webflux.routes[N]} entry from a test
+ * consistently fails with {@code UnboundConfigurationPropertiesException}
+ * from {@code GatewayProperties}' own list binding — confirmed with a
+ * minimal, isolated probe: a brand-new index nothing else ever defines,
+ * added purely in memory via {@code @DynamicPropertySource} with no
+ * properties file involved at all, on a clean build. Same failure every
+ * time. This appears to be a genuine limitation of how this Spring Cloud
+ * Gateway release binds that specific {@code List<RouteDefinition>}
+ * property from test-time property sources, not a mistake in how it was
+ * attempted — the identical property shape binds correctly in a real run
+ * (verified when all 15 services were boot-tested earlier in this project).
  *
- * <p>Rather than keep excavating that, this test uses the route exactly as
- * configured: patient-service's route already targets
- * {@code localhost:8502}, so the stub listens there instead. Nothing about
- * the gateway's configuration is touched, so there is no binding path left
- * to go wrong.
+ * <p>So instead: the stub listens on the exact port patient-service's route
+ * already targets ({@code localhost:8502}), and nothing about the gateway's
+ * configuration is touched. There is no binding path left to go wrong. The
+ * trade-off is that this test cannot run at the same time as a real
+ * patient-service instance bound to that same port locally.
+ *
+ * <p>Security isn't wired up yet for the gateway's own default behaviour in
+ * this test — {@code SecurityConfig} is excluded here via
+ * {@code @Profile("!test")} + {@code @ActiveProfiles("test")}, and the
+ * nested {@code PermissiveSecurityConfig} below stands in for it. Real JWT
+ * validation is covered separately in {@code GatewayJwtSecurityTest}.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
+@ActiveProfiles("test")
 class GatewayRoutingTest {
 
     // The port patient-service's route already targets by default

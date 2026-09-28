@@ -1,0 +1,2 @@
+com.yahyaelomari.healthpack.common.security.ServletJwtRoleConverterAutoConfiguration
+com.yahyaelomari.healthpack.common.security.ReactiveJwtRoleConverterAutoConfiguration
