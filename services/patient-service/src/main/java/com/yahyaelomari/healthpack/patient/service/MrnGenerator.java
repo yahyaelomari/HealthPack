@@ -26,6 +26,8 @@ public class MrnGenerator {
 
     private final JdbcTemplate jdbcTemplate;
 
+    //nextval provides a tradeoff for a failed transaction; if the transaction fails, the next mrn sequence request will be the next on
+    //so if it should give 5 and it failed, the retry gives 6 and not 5, this is better than having 2 patients with the same mrn
     public String generate() {
         Long next = jdbcTemplate.queryForObject("SELECT nextval('patient_mrn_seq')", Long.class);
         return "P-%d-%06d".formatted(Year.now().getValue(), next);
