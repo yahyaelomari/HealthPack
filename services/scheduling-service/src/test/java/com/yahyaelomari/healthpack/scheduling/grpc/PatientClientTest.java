@@ -3,6 +3,7 @@ package com.yahyaelomari.healthpack.scheduling.grpc;
 import com.yahyaelomari.healthpack.proto.patient.GetPatientRequest;
 import com.yahyaelomari.healthpack.proto.patient.GetPatientResponse;
 import com.yahyaelomari.healthpack.proto.patient.PatientLookupServiceGrpc;
+import com.yahyaelomari.healthpack.scheduling.support.AbstractIntegrationTest;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +26,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * PatientGrpcService's javadoc): FakePatientLookupService below is a
  * BindableService, so without it Spring would demand a JWT this client
  * never sends.
+ *
+ * <p>Extends AbstractIntegrationTest even though this test never touches the
+ * database: {@code @SpringBootTest} boots the whole application context,
+ * including the real JPA/DataSource auto-configuration, so it still needs a
+ * real Postgres to connect to — without this it only "worked" by accident,
+ * on a machine that happened to have one already running on the default port.
  */
 @SpringBootTest(properties = "spring.autoconfigure.exclude="
         + "org.springframework.boot.grpc.server.autoconfigure.security.GrpcServerSecurityAutoConfiguration,"
         + "org.springframework.boot.grpc.server.autoconfigure.security.GrpcServerOAuth2ResourceServerAutoConfiguration")
 @AutoConfigureTestGrpcTransport
-class PatientClientTest {
+class PatientClientTest extends AbstractIntegrationTest {
 
     @Autowired
     private PatientClient patientClient;
