@@ -5,7 +5,9 @@ import com.yahyaelomari.healthpack.scheduling.api.dto.RescheduleAppointmentReque
 import com.yahyaelomari.healthpack.scheduling.domain.Appointment;
 import com.yahyaelomari.healthpack.scheduling.exception.AppointmentNotFoundException;
 import com.yahyaelomari.healthpack.scheduling.exception.AppointmentVersionConflictException;
+import com.yahyaelomari.healthpack.scheduling.exception.PatientNotFoundException;
 import com.yahyaelomari.healthpack.scheduling.exception.SlotUnavailableException;
+import com.yahyaelomari.healthpack.scheduling.grpc.PatientClient;
 import com.yahyaelomari.healthpack.scheduling.mapper.AppointmentMapper;
 import com.yahyaelomari.healthpack.scheduling.repository.AppointmentRepository;
 import org.junit.jupiter.api.Test;
@@ -39,11 +41,15 @@ class AppointmentServiceTest {
     @Mock
     private AppointmentMapper appointmentMapper;
 
+    @Mock
+    private PatientClient patientClient;
+
     @InjectMocks
     private AppointmentService appointmentService;
 
     @Test
     void bookThrowsSlotUnavailableOnAConstraintViolation() {
+        when(patientClient.exists(any())).thenReturn(true);
         when(appointmentRepository.saveAndFlush(any(Appointment.class)))
                 .thenThrow(new DataIntegrityViolationException("no_double_booking"));
 
@@ -53,11 +59,20 @@ class AppointmentServiceTest {
 
     @Test
     void bookThrowsSlotUnavailableOnADeadlock() {
+        when(patientClient.exists(any())).thenReturn(true);
         when(appointmentRepository.saveAndFlush(any(Appointment.class)))
                 .thenThrow(new CannotAcquireLockException("deadlock detected"));
 
         assertThatThrownBy(() -> appointmentService.book(newBookRequest()))
                 .isInstanceOf(SlotUnavailableException.class);
+    }
+
+    @Test
+    void bookThrowsPatientNotFoundWhenThePatientClientSaysItDoesNotExist() {
+        when(patientClient.exists(any())).thenReturn(false);
+
+        assertThatThrownBy(() -> appointmentService.book(newBookRequest()))
+                .isInstanceOf(PatientNotFoundException.class);
     }
 
     @Test

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package healthpack.patient;
+
+option java_package = "com.yahyaelomari.healthpack.proto.patient";
+option java_multiple_files = true;
+
+// Internal only: other services use this to check a patient exists before
+// acting on a patientId they were handed. Nothing outside the cluster ever
+// calls it directly.
+service PatientLookupService {
+  rpc GetPatient (GetPatientRequest) returns (GetPatientResponse);
+}
+
+message GetPatientRequest {
+  string id = 1;
+}
+
+message GetPatientResponse {
+  bool found = 1;
+  string id = 2;
+  string mrn = 3;
+  string first_name = 4;
+  string last_name = 5;
+}

@@ -6,7 +6,9 @@ import com.yahyaelomari.healthpack.scheduling.api.dto.RescheduleAppointmentReque
 import com.yahyaelomari.healthpack.scheduling.domain.Appointment;
 import com.yahyaelomari.healthpack.scheduling.exception.AppointmentNotFoundException;
 import com.yahyaelomari.healthpack.scheduling.exception.AppointmentVersionConflictException;
+import com.yahyaelomari.healthpack.scheduling.exception.PatientNotFoundException;
 import com.yahyaelomari.healthpack.scheduling.exception.SlotUnavailableException;
+import com.yahyaelomari.healthpack.scheduling.grpc.PatientClient;
 import com.yahyaelomari.healthpack.scheduling.mapper.AppointmentMapper;
 import com.yahyaelomari.healthpack.scheduling.repository.AppointmentRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +27,13 @@ public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final AppointmentMapper appointmentMapper;
+    private final PatientClient patientClient;
 
     public AppointmentResponse book(BookAppointmentRequest request) {
+        if (!patientClient.exists(request.patientId())) {
+            throw new PatientNotFoundException(request.patientId());
+        }
+
         Appointment appointment = Appointment.builder()
                 .practitionerId(request.practitionerId())
                 .patientId(request.patientId())

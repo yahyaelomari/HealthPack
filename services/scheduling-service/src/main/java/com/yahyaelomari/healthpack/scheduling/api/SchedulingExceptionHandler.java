@@ -2,6 +2,7 @@ package com.yahyaelomari.healthpack.scheduling.api;
 
 import com.yahyaelomari.healthpack.scheduling.exception.AppointmentNotFoundException;
 import com.yahyaelomari.healthpack.scheduling.exception.AppointmentVersionConflictException;
+import com.yahyaelomari.healthpack.scheduling.exception.PatientNotFoundException;
 import com.yahyaelomari.healthpack.scheduling.exception.PractitionerNotFoundException;
 import com.yahyaelomari.healthpack.scheduling.exception.SlotUnavailableException;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,11 @@ public class SchedulingExceptionHandler {
 
     @ExceptionHandler(AppointmentNotFoundException.class)
     public ProblemDetail handleAppointmentNotFound(AppointmentNotFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(PatientNotFoundException.class)
+    public ProblemDetail handlePatientNotFound(PatientNotFoundException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
