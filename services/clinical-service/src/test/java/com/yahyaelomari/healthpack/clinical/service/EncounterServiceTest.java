@@ -6,6 +6,8 @@ import com.yahyaelomari.healthpack.clinical.domain.EncounterStatus;
 import com.yahyaelomari.healthpack.clinical.domain.EncounterType;
 import com.yahyaelomari.healthpack.clinical.exception.EncounterClosedException;
 import com.yahyaelomari.healthpack.clinical.exception.EncounterNotFoundException;
+import com.yahyaelomari.healthpack.clinical.exception.PatientNotFoundException;
+import com.yahyaelomari.healthpack.clinical.grpc.PatientClient;
 import com.yahyaelomari.healthpack.clinical.mapper.EncounterMapper;
 import com.yahyaelomari.healthpack.clinical.repository.EncounterRepository;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,16 +37,30 @@ class EncounterServiceTest {
     @Mock
     private EncounterMapper encounterMapper;
 
+    @Mock
+    private PatientClient patientClient;
+
     @InjectMocks
     private EncounterService encounterService;
 
     @Test
     void openSavesAnInProgressEncounter() {
+        when(patientClient.exists(any())).thenReturn(true);
+
         encounterService.open(newOpenRequest());
 
         ArgumentCaptor<Encounter> saved = ArgumentCaptor.forClass(Encounter.class);
         verify(encounterRepository).save(saved.capture());
         assertThat(saved.getValue().getStatus()).isEqualTo(EncounterStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void openThrowsPatientNotFoundWhenThePatientClientSaysItDoesNotExist() {
+        when(patientClient.exists(any())).thenReturn(false);
+
+        assertThatThrownBy(() -> encounterService.open(newOpenRequest()))
+                .isInstanceOf(PatientNotFoundException.class);
+        verify(encounterRepository, never()).save(any());
     }
 
     @Test
