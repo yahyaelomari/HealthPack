@@ -5,6 +5,8 @@ import com.yahyaelomari.healthpack.clinical.api.dto.OpenEncounterRequest;
 import com.yahyaelomari.healthpack.clinical.domain.Encounter;
 import com.yahyaelomari.healthpack.clinical.exception.EncounterClosedException;
 import com.yahyaelomari.healthpack.clinical.exception.EncounterNotFoundException;
+import com.yahyaelomari.healthpack.clinical.exception.PatientNotFoundException;
+import com.yahyaelomari.healthpack.clinical.grpc.PatientClient;
 import com.yahyaelomari.healthpack.clinical.mapper.EncounterMapper;
 import com.yahyaelomari.healthpack.clinical.repository.EncounterRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +25,15 @@ public class EncounterService {
 
     private final EncounterRepository encounterRepository;
     private final EncounterMapper encounterMapper;
+    private final PatientClient patientClient;
+
 
     public EncounterResponse open(OpenEncounterRequest request) {
+
+        if (!patientClient.exists(request.patientId())) {
+            throw new PatientNotFoundException(request.patientId());
+        }
+
         Encounter encounter = Encounter.builder()
                 .patientId(request.patientId())
                 .practitionerId(request.practitionerId())

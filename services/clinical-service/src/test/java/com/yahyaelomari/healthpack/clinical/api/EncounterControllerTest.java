@@ -4,6 +4,7 @@ import com.yahyaelomari.healthpack.clinical.api.dto.EncounterResponse;
 import com.yahyaelomari.healthpack.clinical.domain.EncounterStatus;
 import com.yahyaelomari.healthpack.clinical.domain.EncounterType;
 import com.yahyaelomari.healthpack.clinical.exception.EncounterClosedException;
+import com.yahyaelomari.healthpack.clinical.exception.PatientNotFoundException;
 import com.yahyaelomari.healthpack.clinical.service.EncounterService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,24 @@ class EncounterControllerTest {
                                 }
                                 """.formatted(UUID.randomUUID())))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void openReturns404WhenThePatientDoesNotExist() throws Exception {
+        UUID patientId = UUID.randomUUID();
+        when(encounterService.open(any())).thenThrow(new PatientNotFoundException(patientId));
+
+        mockMvc.perform(post("/api/v1/encounters")
+                        .contentType("application/json")
+                        .content("""
+                                {
+                                  "patientId": "%s",
+                                  "practitionerId": "%s",
+                                  "type": "AMBULATORY",
+                                  "startedAt": "2026-01-01T10:00:00Z"
+                                }
+                                """.formatted(patientId, UUID.randomUUID())))
+                .andExpect(status().isNotFound());
     }
 
     @Test
